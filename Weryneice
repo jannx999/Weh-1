@@ -28,11 +28,7 @@ def accelerate_motors():
             motor2_pwm.ChangeDutyCycle(duty_cycle)
             time.sleep(0.1)  # Wartezeit zwischen den Schritten (hier 0.1 Sekunden)
             
-    except KeyboardInterrupt:
-        pass
     
-    motor1_pwm.stop()  # Stoppen der PWM für Motor 1
-    motor2_pwm.stop()  # Stoppen der PWM für Motor 2
 
 try:
     while True:
@@ -70,4 +66,7 @@ try:
 
 except KeyboardInterrupt:
     # Stoppt die Motoren
-    GPIO.output(motor1_pin1, GPIO.LOW
+    GPIO.output(motor1_pin1, GPIO.LOW)
+    GPIO.output(motor1_pin2, GPIO.LOW)
+    GPIO.output(motor2_pin1, GPIO.LOW)
+    GPIO.output(motor2_pin2, GPIO.LOW)
