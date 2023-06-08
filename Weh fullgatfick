@@ -2,17 +2,17 @@ import RPi.GPIO as GPIO
 import time
 
 # Pins für den Ultraschallsensor
-GPIO_TRIGGER = 40
-GPIO_ECHO = 38
+GPIO_TRIGGER = 11
+GPIO_ECHO = 13
 
 # Pin für die rote LED
-GPIO_LED = 12
+GPIO_LED = 29
 
 #Pins für den Motor
-IN1 = 7
-IN2 = 11
-IN3 = 29
-IN4 = 31
+IN1 = 31
+IN2 = 33
+IN3 = 35
+IN4 = 37
 
 #Festlegung der Pin EIN- und Ausgabe
 GPIO.setmode(GPIO.BOARD)
