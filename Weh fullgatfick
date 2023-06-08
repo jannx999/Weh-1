@@ -1,0 +1,166 @@
+import RPi.GPIO as GPIO
+import time
+
+# Pins für den Ultraschallsensor
+GPIO_TRIGGER = 40
+GPIO_ECHO = 38
+
+# Pin für die rote LED
+GPIO_LED = 12
+
+#Pins für den Motor
+IN1 = 7
+IN2 = 11
+IN3 = 29
+IN4 = 31
+
+#Festlegung der Pin EIN- und Ausgabe
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(IN1, GPIO.OUT)
+GPIO.setup(IN2, GPIO.OUT)
+GPIO.setup(IN3, GPIO.OUT)
+GPIO.setup(IN4, GPIO.OUT)
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+GPIO.setup(GPIO_LED, GPIO.OUT)
+
+#Frequenz der PWM erstellen 
+pwm_freq = 100
+
+#PWM erstellen für den Motor
+IN1_pwm = GPIO.PWM(IN1, pwm_freq)
+IN2_pwm = GPIO.PWM(IN2, pwm_freq)
+IN3_pwm = GPIO.PWM(IN3, pwm_freq)
+IN4_pwm = GPIO.PWM(IN4, pwm_freq)
+
+#PWM starten
+IN1_pwm.start(0)
+IN2_pwm.start(0)
+IN3_pwm.start(0)
+IN4_pwm.start(0)
+
+#Funktion ertsellen für die motorsteuerung
+def forward():
+    IN1_pwm.ChangeDutyCycle(50)
+    IN2_pwm.ChangeDutyCycle(0)
+    IN3_pwm.ChangeDutyCycle(50)
+    IN4_pwm.ChangeDutyCycle(0)
+    
+def backwards():
+    IN1_pwm.ChangeDutyCycle(0)
+    IN2_pwm.ChangeDutyCycle(50)
+    IN3_pwm.ChangeDutyCycle(0)
+    IN4_pwm.ChangeDutyCycle(50)
+
+def left():
+    IN1_pwm.ChangeDutyCycle(0)
+    IN2_pwm.ChangeDutyCycle(50)
+    IN3_pwm.ChangeDutyCycle(50)
+    IN4_pwm.ChangeDutyCycle(0)
+    
+def right():
+    IN1_pwm.ChangeDutyCycle(50)
+    IN2_pwm.ChangeDutyCycle(0)
+    IN3_pwm.ChangeDutyCycle(0)
+    IN4_pwm.ChangeDutyCycle(50)
+    
+def stop():
+    IN1_pwm.ChangeDutyCycle(0)
+    IN2_pwm.ChangeDutyCycle(0)
+    IN3_pwm.ChangeDutyCycle(0)
+    IN4_pwm.ChangeDutyCycle(0)
+    
+print("Möglichkeiten der Modi:")
+print("Manuell:	man")
+print("Autonom:	aut")
+steuerung = input("Wählen sie ihren gewünschten Modus an:")
+
+if steuerung == "man":
+
+    print(16*"#","MENÜ",16*"#")
+    print()
+    print("Mögliche Fahrtrichtungen:")
+    print( "Vorwärts:	f")
+    print( "Rückwärts:	b")
+    print( "Links:		l")
+    print( "Rechts:		r")
+    print( "Stopp:		s")
+    print(38*"#")
+    print()
+
+    try:
+        while True:
+            
+            richtung = input("Wählen sie eine Fahrtrichtung durch \n Eingabe des jeweiligen Befehle:")
+
+    #schleife des Programms
+
+            if richtung == "f":
+                forward()
+            
+            elif richtung == "b":
+                backwards()
+                
+            elif richtung == "l":
+                left()
+                
+            elif richtung == "r":
+                right()
+                
+            elif richtung == "s":
+                stop()
+
+    #Programm beenden
+    except KeyboardInterrupt:
+        GPIO.output(IN1, GPIO.LOW)
+        GPIO.output(IN2, GPIO.LOW)
+        GPIO.output(IN3, GPIO.LOW)
+        GPIO.output(IN4, GPIO.LOW)
+        GPIO.cleanup()
+        
+elif steuerung == "aut":
+    
+    def distance():
+        # Senden des Trigger-Impulses an den Sensor
+        GPIO.output(GPIO_TRIGGER, True)
+        time.sleep(0.00001)
+        GPIO.output(GPIO_TRIGGER, False)
+
+        start_time = time.time()
+        stop_time = time.time()
+
+        # Ermittlung der Start- und Stop-Zeit des Echos
+        while GPIO.input(GPIO_ECHO) == 0:
+            start_time = time.time()
+
+        while GPIO.input(GPIO_ECHO) == 1:
+            stop_time = time.time()
+
+        # Berechnung der Entfernung basierend auf der Zeit des Echos
+        time_elapsed = stop_time - start_time
+        distance_cm = (time_elapsed * 34300) / 2
+
+        return distance_cm
+
+    try:
+        while True:
+            dist = distance()
+            print("Abstand: %.1f cm" % dist)
+
+            # Wenn der Abstand weniger als 10 cm beträgt, lässt die LED aufleuchten und "Achtung!" wird geprintet
+            if dist < 10:
+                GPIO.output(GPIO_LED, True)
+                print("Achtung!")
+            else:
+                GPIO.output(GPIO_LED, False)
+
+            time.sleep(0.1)
+            
+            if dist < 30:
+                right()
+            else:
+                forward()
+            
+    except KeyboardInterrupt:
+        # Zurücksetzen der Pins auf Standardwerte
+        GPIO.cleanup()
