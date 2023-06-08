@@ -19,3 +19,75 @@ while True:
         break
     else:
         print("Ungültige Eingabe! Bitte wählen Sie eine der folgenden Optionen: fwd, bwd, left oder right.")
+import RPi.GPIO as GPIO
+import time
+
+# Pin definitions
+motor1_pin1 = 31  # Input 1 of Motor 1
+motor1_pin2 = 33  # Input 2 of Motor 1
+motor2_pin1 = 35  # Input 1 of Motor 2
+motor2_pin2 = 37  # Input 2 of Motor 2
+
+# GPIO pin initialization
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(motor1_pin1, GPIO.OUT)
+GPIO.setup(motor1_pin2, GPIO.OUT)
+GPIO.setup(motor2_pin1, GPIO.OUT)
+GPIO.setup(motor2_pin2, GPIO.OUT)
+
+# Function for gradually accelerating the motors
+def accelerate_motors():
+    frequency = 50  # PWM frequency
+    motor1_pwm = GPIO.PWM(motor1_pin1, frequency)
+    motor2_pwm = GPIO.PWM(motor2_pin1, frequency)
+    motor1_pwm.start(0)  # Start PWM for Motor 1
+    motor2_pwm.start(0)  # Start PWM for Motor 2
+
+    try:
+        for duty_cycle in range(0, 101):  # Gradually increase the duty cycle from 0% to 100%
+            motor1_pwm.ChangeDutyCycle(duty_cycle)
+            motor2_pwm.ChangeDutyCycle(duty_cycle)
+            time.sleep(0.1)  # Wait time between steps (here 0.1 seconds)
+
+    
+
+try:
+    while True:
+        direction = input("Enter a direction (w=forward, s=backward, a=left, d=right): ")
+
+        if direction == "w":
+            # Move forward
+            accelerate_motors()
+            GPIO.output(motor1_pin1, GPIO.HIGH)
+            GPIO.output(motor1_pin2, GPIO.LOW)
+            GPIO.output(motor2_pin1, GPIO.HIGH)
+            GPIO.output(motor2_pin2, GPIO.LOW)
+        elif direction == "s":
+            # Move backward
+            GPIO.output(motor1_pin1, GPIO.LOW)
+            GPIO.output(motor1_pin2, GPIO.HIGH)
+            GPIO.output(motor2_pin1, GPIO.LOW)
+            GPIO.output(motor2_pin2, GPIO.HIGH)
+        elif direction == "a":
+            # Turn left
+            GPIO.output(motor1_pin1, GPIO.LOW)
+            GPIO.output(motor1_pin2, GPIO.HIGH)
+            GPIO.output(motor2_pin1, GPIO.HIGH)
+            GPIO.output(motor2_pin2, GPIO.LOW)
+        elif direction == "d":
+            # Turn right
+            GPIO.output(motor1_pin1, GPIO.HIGH)
+            GPIO.output(motor1_pin2, GPIO.LOW)
+            GPIO.output(motor2_pin1, GPIO.LOW)
+            GPIO.output(motor2_pin2, GPIO.HIGH)
+        else:
+            # Invalid input
+            print("Invalid direction!")
+            continue
+
+except KeyboardInterrupt:
+    # Stop the motors
+    GPIO.output(motor1_pin1, GPIO.LOW)
+    GPIO.output(motor1_pin2, GPIO.LOW)
+    GPIO.output(motor2_pin1, GPIO.LOW)
+    GPIO.output(motor2_pin2, GPIO.LOW)
