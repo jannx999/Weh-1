@@ -13,6 +13,9 @@ IN1 = 31
 IN2 = 33
 IN3 = 35
 IN4 = 37
+GPIO_LINE_SENSOR_LEFT = 16
+GPIO_LINE_SENSOR_MIDDLE = 18
+GPIO_LINE_SENSOR_RIGHT = 22
 
 #Festlegung der Pin EIN- und Ausgabe
 GPIO.setmode(GPIO.BOARD)
@@ -38,6 +41,33 @@ IN1_pwm.start(0)
 IN2_pwm.start(0)
 IN3_pwm.start(0)
 IN4_pwm.start(0)
+# Function to read line tracking sensor values
+def read_line_tracking_sensors():
+    left_value = GPIO.input(GPIO_LINE_SENSOR_LEFT)
+    middle_value = GPIO.input(GPIO_LINE_SENSOR_MIDDLE)
+    right_value = GPIO.input(GPIO_LINE_SENSOR_RIGHT)
+    return left_value, middle_value, right_value
+
+try:
+    while True:
+        # Read line tracking sensor values
+        left, middle, right = read_line_tracking_sensors()
+
+        # Perform line following logic
+        if left == 1 and middle == 0 and right == 1:
+            # Both left and right sensors detect the line, go forward
+            forward()
+        elif left == 0 and middle == 0 and right == 1:
+            # Only the right sensor detects the line, turn right
+            right()
+        elif left == 1 and middle == 0 and right == 0:
+            # Only the left sensor detects the line, turn left
+            left()
+        else:
+            # No line detected, stop
+            stop()
+
+        time.sleep(0.1)
 
 #Funktion ertsellen für die motorsteuerung
 def forward():
